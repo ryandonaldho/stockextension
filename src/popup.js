@@ -14,11 +14,20 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 
-document
-  .querySelector("#autocomplete-input")
-  .addEventListener("keyup", function(e) {
-    // let instance = M.Autocomplete.getInstance(elems[0]);
-    // console.log(instance);
+const debounce = (func, delay) => {
+  let inDebounce;
+  return function() {
+    const context = this;
+    const args = arguments;
+    clearTimeout(inDebounce);
+    inDebounce = setTimeout(() => func.apply(context, args), delay);
+  };
+};
+
+document.querySelector("#autocomplete-input").addEventListener(
+  "keyup",
+  debounce(function(e) {
+    console.log(instances);
     let searchResultResponse = getSearchResult(e.target.value);
     searchResultResponse
       .then(data => {
@@ -26,7 +35,8 @@ document
         updateSearchResult(formattedData);
       })
       .catch(err => console.log(err));
-  });
+  }, 1500)
+);
 
 function updateSearchResult(data) {
   let instance = M.Autocomplete.getInstance(elems[0]);
