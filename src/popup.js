@@ -19,33 +19,33 @@ document
   .addEventListener("keyup", function(e) {
     // let instance = M.Autocomplete.getInstance(elems[0]);
     // console.log(instance);
-    getSearchResult(e.target.value);
+    let searchResultResponse = getSearchResult(e.target.value);
+    searchResultResponse
+      .then(data => {
+        let formattedData = formatData(data);
+        updateSearchResult(formattedData);
+      })
+      .catch(err => console.log(err));
   });
 
-// document.addEventListener("DOMContentLoaded", function() {
-//   getSearchResult("BA");
-// });
-
-function formatData(data) {
-  console.log("format data", data.bestMatches);
-  console.log(data);
-  let formattedData = {};
-  if (data) {
-    data.bestMatches.forEach(item => {
-      let name = `${item["2. name"]} (${item["1. symbol"]})`;
-      formattedData[name] = null;
-    });
-    console.log(formattedData);
-    let instance = M.Autocomplete.getInstance(elems[0]);
-    instance.updateData(formattedData);
-  }
+function updateSearchResult(data) {
+  let instance = M.Autocomplete.getInstance(elems[0]);
+  instance.updateData(data);
 }
 
-function getSearchResult(search_term) {
-  http
-    .get(
-      `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${search_term}&apikey=${API_KEY}`
-    )
-    .then(data => formatData(data))
-    .catch(err => console.log(err));
+function formatData(data) {
+  console.log(data);
+  let formattedData = {};
+  data.bestMatches.forEach(item => {
+    let name = `${item["2. name"]} (${item["1. symbol"]})`;
+    formattedData[name] = null;
+  });
+  return formattedData;
+}
+
+async function getSearchResult(search_term) {
+  const results = await http.get(
+    `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${search_term}&apikey=${API_KEY}`
+  );
+  return results;
 }
