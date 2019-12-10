@@ -12,6 +12,19 @@ document.addEventListener("DOMContentLoaded", function() {
     data,
     minLength: 0
   });
+
+  document
+    .querySelector(".autocomplete-content.dropdown-content")
+    .addEventListener("click", function(e) {
+      let target = e.target;
+      // Get Stock Symbol
+      if (target) {
+        let regExp = /\(([^)]+)\)/;
+        let matches = regExp.exec(e.target.innerHTML);
+        //console.log(matches[1]);
+        let symbol = matches[1];
+      }
+    });
 });
 
 const debounce = (func, delay) => {
@@ -23,6 +36,16 @@ const debounce = (func, delay) => {
     inDebounce = setTimeout(() => func.apply(context, args), delay);
   };
 };
+
+// document
+//   .querySelector("#autocomplete-input")
+//   .addEventListener("click", function(e) {
+//     if (e.target.lastChild) {
+//       let selectedValue = document.querySelector("#autocomplete-input").value;
+//       //document.querySelector("#autocomplete-input").value = "";
+//       console.log(selectedValue);
+//     }
+//   });
 
 document.querySelector("#autocomplete-input").addEventListener(
   "keyup",
