@@ -1,4 +1,5 @@
 import { http } from "./http.js";
+import {ui} from "./ui.js";
 
 let API_KEY = "TBL9WNG4CFWI9APR";
 
@@ -13,6 +14,8 @@ document.addEventListener("DOMContentLoaded", function() {
     minLength: 0
   });
 
+  //ui.initialState();
+
   document
     .querySelector(".autocomplete-content.dropdown-content")
     .addEventListener("click", function(e) {
@@ -23,6 +26,13 @@ document.addEventListener("DOMContentLoaded", function() {
         let matches = regExp.exec(e.target.innerHTML);
         //console.log(matches[1]);
         let symbol = matches[1];
+        let title = document.querySelector('#autocomplete-input').value;
+        document.querySelector('#autocomplete-input').value = '';
+        let quoteResultResponse = getStockQuote(symbol);
+        quoteResultResponse.then(data=> {
+          //console.log(data)
+          ui.displayCard(title,data);
+        }).catch(err => console.log(err));
       }
     });
 });
@@ -79,6 +89,13 @@ function formatData(data) {
 async function getSearchResult(search_term) {
   const results = await http.get(
     `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${search_term}&apikey=${API_KEY}`
+  );
+  return results;
+}
+
+async function getStockQuote(search_term){
+  const results = await http.get(
+    `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${search_term}&apikey=${API_KEY}`
   );
   return results;
 }
