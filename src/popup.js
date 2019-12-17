@@ -1,5 +1,5 @@
 import { http } from "./http.js";
-import {ui} from "./ui.js";
+import { ui } from "./ui.js";
 
 let API_KEY = "TBL9WNG4CFWI9APR";
 
@@ -12,10 +12,17 @@ let state = {
 };
 
 // update state
-function updateSelectedStock(data){
-  state["stock"] = data["Global Quote"];
+function updateSelectedStock(data) {
+  state["selectedStock"] = data["Global Quote"];
 }
-document.addEventListener("DOMContentLoaded", function() {
+
+// add stock to portfolio state
+function addStockToPortfolio(stock) {
+  state["portfolio"].push(stock);
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
   elems = document.querySelectorAll(".autocomplete");
   instances = M.Autocomplete.init(elems, {
     data,
@@ -26,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document
     .querySelector(".autocomplete-content.dropdown-content")
-    .addEventListener("click", function(e) {
+    .addEventListener("click", function (e) {
       let target = e.target;
       // Get Stock Symbol
       if (target) {
@@ -37,9 +44,9 @@ document.addEventListener("DOMContentLoaded", function() {
         let title = document.querySelector('#autocomplete-input').value;
         document.querySelector('#autocomplete-input').value = '';
         let quoteResultResponse = getStockQuote(symbol);
-        quoteResultResponse.then(data=> {
+        quoteResultResponse.then(data => {
           //console.log(data)
-          ui.displayCard(title,data);
+          ui.displayCard(title, data);
           updateSelectedStock(data);
         }).catch(err => console.log(err));
       }
@@ -48,15 +55,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 // Add Button Listener
-document.querySelector('#add-button').addEventListener("click", function(e){
+document.querySelector('#add-button').addEventListener("click", function (e) {
   console.log('clicked', state["selectedStock"]);
-  
-  //ui.updatePortfolio(portfolioState);
+  let stockSymbol = state["selectedStock"]["01. symbol"];
+  // Add stock to portfolio state
+  addStockToPortfolio(stockSymbol);
+  console.log(state["portfolio"]);
+  ui.displayPortfolio(state["portfolio"]);
 });
 
 const debounce = (func, delay) => {
   let inDebounce;
-  return function() {
+  return function () {
     const context = this;
     const args = arguments;
     clearTimeout(inDebounce);
@@ -76,7 +86,7 @@ const debounce = (func, delay) => {
 
 document.querySelector("#autocomplete-input").addEventListener(
   "keyup",
-  debounce(function(e) {
+  debounce(function (e) {
     console.log(instances);
     let searchResultResponse = getSearchResult(e.target.value);
     searchResultResponse
@@ -110,7 +120,7 @@ async function getSearchResult(search_term) {
   return results;
 }
 
-async function getStockQuote(search_term){
+async function getStockQuote(search_term) {
   const results = await http.get(
     `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${search_term}&apikey=${API_KEY}`
   );

@@ -1,5 +1,5 @@
 class UI {
-    constructor(){
+    constructor() {
         this.cardElement = document.querySelector('#main-card');
         this.cardTitle = document.querySelector('.card-title');
         this.cardOpenPrice = document.querySelector('#open-value');
@@ -12,13 +12,15 @@ class UI {
         this.cardChange = document.querySelector('#change-value');
         this.cardPercent = document.querySelector('#percent-value');
         this.cardLink = document.querySelector('#card-link');
+
+        this.tableElement = document.querySelector('#portfolio tbody');
     }
 
-    initialState(){
+    initialState() {
         this.cardElement.style.display = "none";
     }
 
-    displayCard(title,data){
+    displayCard(title, data) {
         // Get Values
         let symbolValue = data["Global Quote"]["01. symbol"];
         let openValue = data["Global Quote"]["02. open"];
@@ -47,6 +49,27 @@ class UI {
         this.cardChange.innerHTML = changeValue;
         this.cardPercent.innerHTML = changePercentValue;
         this.cardLink.href = `https://finance.yahoo.com/quote/${symbolValue}`
+    }
+
+    displayPortfolio(stocks) {
+        let output = '';
+        stocks.forEach(stock => {
+            output += `
+            <tr> 
+            <td> 
+            ${stock} 
+            </td>
+            <td> $5.00 
+            </td>
+            <td> 100
+            </td>
+            <td>
+            <i class="material-icons">edit</i><i class="material-icons">delete</i>
+            </td>
+            </tr>`
+        });
+        this.tableElement.innerHTML = output;
+
     }
 }
 
