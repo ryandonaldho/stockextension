@@ -11,6 +11,7 @@ class UI {
         this.cardPreviousClose = document.querySelector('#prevclose-value');
         this.cardChange = document.querySelector('#change-value');
         this.cardPercent = document.querySelector('#percent-value');
+        this.cardLink = document.querySelector('#card-link');
     }
 
     initialState(){
@@ -19,6 +20,7 @@ class UI {
 
     displayCard(title,data){
         // Get Values
+        let symbolValue = data["Global Quote"]["01. symbol"];
         let openValue = data["Global Quote"]["02. open"];
         let highValue = data["Global Quote"]["03. high"];
         let lowValue = data["Global Quote"]["04. low"];
@@ -44,7 +46,7 @@ class UI {
         this.cardPreviousClose.innerHTML = previousCloseValue;
         this.cardChange.innerHTML = changeValue;
         this.cardPercent.innerHTML = changePercentValue;
-
+        this.cardLink.href = `https://finance.yahoo.com/quote/${symbolValue}`
     }
 }
 

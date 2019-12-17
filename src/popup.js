@@ -6,7 +6,15 @@ let API_KEY = "TBL9WNG4CFWI9APR";
 let data = null;
 let elems = null;
 let instances = null;
+let state = {
+  selectedStock: '',
+  portfolio: []
+};
 
+// update state
+function updateSelectedStock(data){
+  state["stock"] = data["Global Quote"];
+}
 document.addEventListener("DOMContentLoaded", function() {
   elems = document.querySelectorAll(".autocomplete");
   instances = M.Autocomplete.init(elems, {
@@ -32,9 +40,18 @@ document.addEventListener("DOMContentLoaded", function() {
         quoteResultResponse.then(data=> {
           //console.log(data)
           ui.displayCard(title,data);
+          updateSelectedStock(data);
         }).catch(err => console.log(err));
       }
     });
+});
+
+
+// Add Button Listener
+document.querySelector('#add-button').addEventListener("click", function(e){
+  console.log('clicked', state["selectedStock"]);
+  
+  //ui.updatePortfolio(portfolioState);
 });
 
 const debounce = (func, delay) => {
