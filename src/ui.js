@@ -13,7 +13,7 @@ class UI {
         this.cardPercent = document.querySelector('#percent-value');
         this.cardLink = document.querySelector('#card-link');
 
-        this.tableElement = document.querySelector('#portfolio tbody');
+        this.tableElement = document.querySelector('#watch-list tbody');
     }
 
     initialState() {
@@ -56,12 +56,11 @@ class UI {
         stocks.forEach(stock => {
             output += `
             <tr> 
+            <td> ${stock["name"]}  </td>
             <td> 
-            ${stock} 
+            ${stock["01. symbol"]} 
             </td>
-            <td> $5.00 
-            </td>
-            <td> 100
+            <td> ${stock["05. price"]} 
             </td>
             <td>
             <i class="material-icons">edit</i><i class="material-icons">delete</i>

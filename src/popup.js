@@ -8,18 +8,21 @@ let elems = null;
 let instances = null;
 let state = {
   selectedStock: '',
-  portfolio: []
+  watchlist: []
 };
 
 // update state
 function updateSelectedStock(data) {
-  state["selectedStock"] = data["Global Quote"];
+  console.log(data);
+  state["selectedStock"] = data;
 }
 
-// add stock to portfolio state
+// add stock to watchlist state
 function addStockToPortfolio(stock) {
-  state["portfolio"].push(stock);
+  state["watchlist"].push(stock);
 }
+
+// 
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -39,15 +42,20 @@ document.addEventListener("DOMContentLoaded", function () {
       if (target) {
         let regExp = /\(([^)]+)\)/;
         let matches = regExp.exec(e.target.innerHTML);
-        //console.log(matches[1]);
+        console.log(matches);
         let symbol = matches[1];
         let title = document.querySelector('#autocomplete-input').value;
+        let stockName = title.split(" (")[0];
+        console.log(stockName);
         document.querySelector('#autocomplete-input').value = '';
         let quoteResultResponse = getStockQuote(symbol);
         quoteResultResponse.then(data => {
           //console.log(data)
           ui.displayCard(title, data);
-          updateSelectedStock(data);
+          let stockNameObject = { name: stockName };
+          let newObject = Object.assign({}, data["Global Quote"], stockNameObject);
+          //console.log(newObject);
+          updateSelectedStock(newObject);
         }).catch(err => console.log(err));
       }
     });
@@ -57,11 +65,11 @@ document.addEventListener("DOMContentLoaded", function () {
 // Add Button Listener
 document.querySelector('#add-button').addEventListener("click", function (e) {
   console.log('clicked', state["selectedStock"]);
-  let stockSymbol = state["selectedStock"]["01. symbol"];
+  let stock = state["selectedStock"]
   // Add stock to portfolio state
-  addStockToPortfolio(stockSymbol);
-  console.log(state["portfolio"]);
-  ui.displayPortfolio(state["portfolio"]);
+  addStockToPortfolio(stock);
+  console.log(state["watchlist"]);
+  ui.displayPortfolio(state["watchlist"]);
 });
 
 const debounce = (func, delay) => {
