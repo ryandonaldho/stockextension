@@ -1,6 +1,6 @@
 class UI {
     constructor() {
-        this.cardElement = document.querySelector('#main-card');
+        this.cardElement = document.querySelector('.stock-info');
         this.cardTitle = document.querySelector('.card-title');
         this.cardOpenPrice = document.querySelector('#open-value');
         this.cardHighPrice = document.querySelector('#high-value');

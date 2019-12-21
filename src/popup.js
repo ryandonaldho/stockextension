@@ -8,7 +8,6 @@ let elems = null;
 let instances = null;
 let state = {
   selectedStock: '',
-  watchlist: []
 };
 
 // update state
@@ -19,7 +18,17 @@ function updateSelectedStock(data) {
 
 // add stock to watchlist state
 function addStockToPortfolio(stock) {
-  state["watchlist"].push(stock);
+  let watchlist = [];
+  chrome.storage.local.get(['stocks'], function (result) {
+    console.log(result.stocks);
+    if (result.stocks != null) {
+      watchlist = result.stocks;
+      console.log(watchlist);
+    }
+
+    watchlist.push(stock);
+    chrome.storage.local.set({ stocks: watchlist });
+  });
 }
 
 // 
@@ -32,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
     minLength: 0
   });
 
-  //ui.initialState();
+  ui.initialState();
 
   document
     .querySelector(".autocomplete-content.dropdown-content")
@@ -68,8 +77,11 @@ document.querySelector('#add-button').addEventListener("click", function (e) {
   let stock = state["selectedStock"]
   // Add stock to portfolio state
   addStockToPortfolio(stock);
-  console.log(state["watchlist"]);
-  ui.displayPortfolio(state["watchlist"]);
+  // get sync storage and update 
+  chrome.storage.local.get(['stocks'], function (result) {
+    ui.displayPortfolio(result.stocks);
+  });
+  //ui.displayPortfolio(state["watchlist"]);
 });
 
 const debounce = (func, delay) => {
