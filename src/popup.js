@@ -20,10 +20,10 @@ function updateSelectedStock(data) {
 function addStockToPortfolio(stock) {
   let watchlist = [];
   chrome.storage.local.get(['stocks'], function (result) {
-    console.log(result.stocks);
+    //console.log(result.stocks);
     if (result.stocks != null) {
       watchlist = result.stocks;
-      console.log(watchlist);
+      //console.log(watchlist);
     }
 
     watchlist.push(stock);
@@ -42,6 +42,10 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   ui.initialState();
+  chrome.storage.local.get(['stocks'], function (result) {
+    if (result.stocks != undefined)
+      ui.displayPortfolio(result.stocks);
+  });
 
   document
     .querySelector(".autocomplete-content.dropdown-content")
@@ -77,12 +81,37 @@ document.querySelector('#add-button').addEventListener("click", function (e) {
   let stock = state["selectedStock"]
   // Add stock to portfolio state
   addStockToPortfolio(stock);
-  // get sync storage and update 
+  // get sync storage and update ui
   chrome.storage.local.get(['stocks'], function (result) {
     ui.displayPortfolio(result.stocks);
   });
   //ui.displayPortfolio(state["watchlist"]);
 });
+
+// Delete Stock Button Listener
+document.querySelector('#watch-list tbody').addEventListener("click", function (e) {
+  if (e.target.parentElement.classList.contains('btn-delete')) {
+    const stockSymbol = e.target.parentElement.parentElement.parentElement.getAttribute("data-id");
+    deleteFromWatchList(stockSymbol);
+    // get sync storage and update ui
+    chrome.storage.local.get(['stocks'], function (result) {
+      ui.displayPortfolio(result.stocks);
+    });
+  }
+});
+
+function deleteFromWatchList(stockSymbol) {
+  console.log(stockSymbol);
+  chrome.storage.local.get(['stocks'], function (result) {
+    let watchlist = result.stocks;
+    console.log(watchlist);
+    watchlist = watchlist.filter(function (stock) {
+      return stock["01. symbol"] !== stockSymbol;
+    });
+    console.log(watchlist);
+    chrome.storage.local.set({ stocks: watchlist });
+  });
+}
 
 const debounce = (func, delay) => {
   let inDebounce;
@@ -93,16 +122,6 @@ const debounce = (func, delay) => {
     inDebounce = setTimeout(() => func.apply(context, args), delay);
   };
 };
-
-// document
-//   .querySelector("#autocomplete-input")
-//   .addEventListener("click", function(e) {
-//     if (e.target.lastChild) {
-//       let selectedValue = document.querySelector("#autocomplete-input").value;
-//       //document.querySelector("#autocomplete-input").value = "";
-//       console.log(selectedValue);
-//     }
-//   });
 
 document.querySelector("#autocomplete-input").addEventListener(
   "keyup",

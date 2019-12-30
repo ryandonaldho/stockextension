@@ -55,7 +55,7 @@ class UI {
         let output = '';
         stocks.forEach(stock => {
             output += `
-            <tr> 
+            <tr data-id=${stock["01. symbol"]}> 
             <td> ${stock["name"]}  </td>
             <td> 
             ${stock["01. symbol"]} 
@@ -63,7 +63,7 @@ class UI {
             <td> ${stock["05. price"]} 
             </td>
             <td>
-            <i class="material-icons">edit</i><i class="material-icons">delete</i>
+            <i class="material-icons">edit</i> <a class="btn-delete"> <i class="material-icons">delete</i> </a>
             </td>
             </tr>`
         });
