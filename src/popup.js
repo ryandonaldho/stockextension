@@ -6,6 +6,7 @@ let elems = null;
 let instances = null;
 let state = {
   selectedStock: '',
+  selectedStockToDelete: ''
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -14,12 +15,13 @@ document.addEventListener("DOMContentLoaded", function () {
     data,
     minLength: 0
   });
+  let confirmDeleteModal = document.querySelectorAll('.modal');
+  let modalInstance = M.Modal.init(confirmDeleteModal, {
+    dismissible: true
+  });
 
   ui.initialState();
-  chrome.storage.local.get(['stocks'], function (result) {
-    if (result.stocks != undefined)
-      ui.displayPortfolio(result.stocks);
-  });
+  getDataAndDisplay();
 
   document.querySelector("#autocomplete-input").addEventListener(
     "keyup", debounce((e) => handleStockSearch(e), 1500));
@@ -33,21 +35,32 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelector('#add-button').addEventListener("click", handleAddStock);
 
   // Delete Stock Button Listener
-  document.querySelector('#watch-list tbody').addEventListener("click", handleDelete);
+  document.querySelector('#watch-list tbody').addEventListener("click", getStockToBeDeleted);
+
+  // Confirm Delete Stock Button Listener
+  document.querySelector('#confirm-delete-button').addEventListener("click", handleDelete);
 });
 
 
-
-
-function handleDelete(e) {
+function getStockToBeDeleted(e) {
   if (e.target.parentElement.classList.contains('btn-delete')) {
     const stockSymbol = e.target.parentElement.parentElement.parentElement.getAttribute("data-id");
+    console.log(stockSymbol);
+    state.selectedStockToDelete = stockSymbol;
+  }
+}
+
+function handleDelete(e) {
+  const stockSymbol = state.selectedStockToDelete;
+  if (stockSymbol !== '') {
     deleteFromWatchList(stockSymbol);
     // get sync storage and update ui
-    chrome.storage.local.get(['stocks'], function (result) {
-      ui.displayPortfolio(result.stocks);
-    });
+    getDataAndDisplay();
   }
+  else {
+    console.log("Error selectedStockToDelete is empty")
+  }
+
 }
 
 function deleteFromWatchList(stockSymbol) {
@@ -105,10 +118,7 @@ function handleAddStock(e) {
   // Add stock to portfolio state
   addStockToPortfolio(stock);
   // get sync storage and update ui
-  chrome.storage.local.get(['stocks'], function (result) {
-    ui.displayPortfolio(result.stocks);
-  });
-  //ui.displayPortfolio(state["watchlist"]);
+  getDataAndDisplay();
 }
 
 function updateSearchResult(data) {
@@ -134,5 +144,12 @@ function addStockToPortfolio(stock) {
 
     watchlist.push(stock);
     chrome.storage.local.set({ stocks: watchlist });
+  });
+}
+
+function getDataAndDisplay() {
+  chrome.storage.local.get(['stocks'], function (result) {
+    if (result.stocks != undefined)
+      ui.displayPortfolio(result.stocks);
   });
 }

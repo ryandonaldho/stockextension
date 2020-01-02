@@ -14,6 +14,9 @@ class UI {
         this.cardLink = document.querySelector('#card-link');
 
         this.tableElement = document.querySelector('#watch-list tbody');
+        this.table = document.querySelector('#watch-list');
+        this.container = document.querySelector('.container');
+        this.emptyMessage = document.querySelector('#empty-message');
     }
 
     initialState() {
@@ -52,23 +55,30 @@ class UI {
     }
 
     displayPortfolio(stocks) {
-        let output = '';
-        stocks.forEach(stock => {
-            output += `
-            <tr data-id=${stock["01. symbol"]}> 
-            <td> ${stock["name"]}  </td>
-            <td> 
-            ${stock["01. symbol"]} 
-            </td>
-            <td> ${stock["05. price"]} 
-            </td>
-            <td>
-            <i class="material-icons">edit</i> <a class="btn-delete"> <i class="material-icons">delete</i> </a>
-            </td>
-            </tr>`
-        });
-        this.tableElement.innerHTML = output;
-
+        if (stocks.length != 0) {
+            this.table.style.display = "block";
+            this.emptyMessage.style.display = "none";
+            let output = '';
+            stocks.forEach(stock => {
+                output += `
+                <tr data-id=${stock["01. symbol"]}> 
+                <td> ${stock["name"]}  </td>
+                <td> 
+                ${stock["01. symbol"]} 
+                </td>
+                <td> ${stock["05. price"]} 
+                </td>
+                <td>
+                <a class="btn-delete modal-trigger btn" href="#confirm-delete-modal"> <i class="material-icons">delete</i> </a>
+                </td>
+                </tr>`
+            });
+            this.tableElement.innerHTML = output;
+        }
+        else {
+            this.table.style.display = "none";
+            this.emptyMessage.style.display = "block";
+        }
     }
 }
 
