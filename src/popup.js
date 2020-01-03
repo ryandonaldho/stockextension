@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
   getDataAndDisplay();
 
   document.querySelector("#autocomplete-input").addEventListener(
-    "keyup", debounce((e) => handleStockSearch(e), 1500));
+    "keyup", debounce((e) => handleStockSearch(e), 1000));
 
   document
     .querySelector(".autocomplete-content.dropdown-content")
@@ -53,9 +53,8 @@ function getStockToBeDeleted(e) {
 function handleDelete(e) {
   const stockSymbol = state.selectedStockToDelete;
   if (stockSymbol !== '') {
-    deleteFromWatchList(stockSymbol);
-    // get sync storage and update ui
-    getDataAndDisplay();
+    // get sync storage and update 
+    deleteFromWatchList(stockSymbol).then(() => getDataAndDisplay())
   }
   else {
     console.log("Error selectedStockToDelete is empty")
@@ -64,16 +63,19 @@ function handleDelete(e) {
 }
 
 function deleteFromWatchList(stockSymbol) {
-  console.log(stockSymbol);
-  chrome.storage.local.get(['stocks'], function (result) {
-    let watchlist = result.stocks;
-    console.log(watchlist);
-    watchlist = watchlist.filter(function (stock) {
-      return stock["01. symbol"] !== stockSymbol;
+  //console.log(stockSymbol);
+  return new Promise(resolve => {
+    chrome.storage.local.get(['stocks'], function (result) {
+      let watchlist = result.stocks;
+      console.log(watchlist);
+      watchlist = watchlist.filter(function (stock) {
+        return stock["01. symbol"] !== stockSymbol;
+      });
+      console.log(watchlist);
+      chrome.storage.local.set({ stocks: watchlist });
+      resolve();
     });
-    console.log(watchlist);
-    chrome.storage.local.set({ stocks: watchlist });
-  });
+  })
 }
 
 
@@ -113,12 +115,12 @@ function handleStockSelection(e) {
 }
 
 function handleAddStock(e) {
-  console.log('clicked', state["selectedStock"]);
+  //console.log('clicked', state["selectedStock"]);
   let stock = state["selectedStock"]
   // Add stock to portfolio state
-  addStockToPortfolio(stock);
+  addStockToPortfolio(stock).then(() => getDataAndDisplay());
   // get sync storage and update ui
-  getDataAndDisplay();
+  //getDataAndDisplay();
 }
 
 function updateSearchResult(data) {
@@ -135,20 +137,25 @@ function updateSelectedStock(data) {
 // add stock to watchlist state
 function addStockToPortfolio(stock) {
   let watchlist = [];
-  chrome.storage.local.get(['stocks'], function (result) {
-    //console.log(result.stocks);
-    if (result.stocks != null) {
-      watchlist = result.stocks;
-      //console.log(watchlist);
-    }
+  return new Promise(resolve => {
+    chrome.storage.local.get(['stocks'], function (result) {
+      //console.log(result.stocks);
+      if (result.stocks != null) {
+        watchlist = result.stocks;
+        //console.log(watchlist);
+      }
+      watchlist.push(stock);
+      console.log("adding..", watchlist);
+      chrome.storage.local.set({ stocks: watchlist });
+      resolve();
+    });
+  })
 
-    watchlist.push(stock);
-    chrome.storage.local.set({ stocks: watchlist });
-  });
 }
 
 function getDataAndDisplay() {
   chrome.storage.local.get(['stocks'], function (result) {
+    console.log('display', result);
     if (result.stocks != undefined)
       ui.displayPortfolio(result.stocks);
   });
