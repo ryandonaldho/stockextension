@@ -1,9 +1,11 @@
 import { ui } from "./ui.js";
-import { getSearchResult, getStockQuote, debounce, formatData } from "./helpers.js";
+import { getSymbols, getStockQuote, debounce, formatData } from "./helpers.js";
 
 let data = null;
 let elems = null;
 let instances = null;
+let symbolsData = null;
+let regExp = /\(([^)]+)\)/;
 let state = {
   selectedStock: '',
   selectedStockToDelete: ''
@@ -13,17 +15,27 @@ document.addEventListener("DOMContentLoaded", function () {
   elems = document.querySelectorAll(".autocomplete");
   instances = M.Autocomplete.init(elems, {
     data,
-    minLength: 0
+    minLength: 1,
+    sortFunction: comparator
   });
   let confirmDeleteModal = document.querySelectorAll('.modal');
   let modalInstance = M.Modal.init(confirmDeleteModal, {
     dismissible: true
   });
 
+  let searchResultResponse = getSymbols();
+  searchResultResponse
+    .then(data => {
+      let formattedData = formatData(data);
+      //console.log(formattedData);
+      updateSearchResult(formattedData);
+    })
+    .catch(err => console.log(err));
+
   initialize();
 
-  document.querySelector("#autocomplete-input").addEventListener(
-    "keyup", debounce((e) => handleStockSearch(e), 1000));
+  // document.querySelector("#autocomplete-input").addEventListener(
+  //   "keyup", debounce((e) => handleStockSearch(e), 500));
 
   document
     .querySelector(".autocomplete-content.dropdown-content")
@@ -39,6 +51,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Confirm Delete Stock Button Listener
   document.querySelector('#confirm-delete-button').addEventListener("click", handleDelete);
 });
+
+
+// Sort function for sorting autocomplete results
+function comparator(a, b, inputString) {
+  return a.indexOf(inputString) - b.indexOf(inputString);
+}
 
 function initialize() {
   ui.hideStockInfoCard();
@@ -84,10 +102,12 @@ function deleteFromWatchList(stockSymbol) {
 
 function handleStockSearch(e) {
   console.log(instances);
-  let searchResultResponse = getSearchResult(e.target.value);
+  let searchResultResponse = getSymbols();
   searchResultResponse
     .then(data => {
+      console.log(data);
       let formattedData = formatData(data);
+      //console.log(formattedData);
       updateSearchResult(formattedData);
     })
     .catch(err => console.log(err));
@@ -100,15 +120,17 @@ function handleStockSelection(e) {
     let regExp = /\(([^)]+)\)/;
     let matches = regExp.exec(e.target.innerHTML);
     console.log(matches);
-    let symbol = matches[1];
-    let title = document.querySelector('#autocomplete-input').value;
+    let symbol = e.target.parentElement.getAttribute("data-stock-symbol");
+    let title = matches[1];
     let stockName = title.split(" (")[0];
-    console.log(stockName);
+    console.log("symbol", symbol);
+    console.log("title", title);
+    //console.log("stockName", stockName);
     document.querySelector('#autocomplete-input').value = '';
     let quoteResultResponse = getStockQuote(symbol);
     quoteResultResponse.then(data => {
       //console.log(data)
-      ui.displayCard(title, data);
+      ui.displayCard(stockName, data);
       let stockNameObject = { name: stockName };
       let newObject = Object.assign({}, data["Global Quote"], stockNameObject);
       //console.log(newObject);
