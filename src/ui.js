@@ -19,7 +19,7 @@ class UI {
         this.emptyMessage = document.querySelector('#empty-message');
     }
 
-    initialState() {
+    hideStockInfoCard() {
         this.cardElement.style.display = "none";
     }
 

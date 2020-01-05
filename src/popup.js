@@ -20,8 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
     dismissible: true
   });
 
-  ui.initialState();
-  getDataAndDisplay();
+  initialize();
 
   document.querySelector("#autocomplete-input").addEventListener(
     "keyup", debounce((e) => handleStockSearch(e), 1000));
@@ -41,6 +40,10 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelector('#confirm-delete-button').addEventListener("click", handleDelete);
 });
 
+function initialize() {
+  ui.hideStockInfoCard();
+  getDataAndDisplay();
+}
 
 function getStockToBeDeleted(e) {
   if (e.target.parentElement.classList.contains('btn-delete')) {
@@ -145,7 +148,7 @@ function addStockToPortfolio(stock) {
         //console.log(watchlist);
       }
       watchlist.push(stock);
-      console.log("adding..", watchlist);
+      //console.log("adding..", watchlist);
       chrome.storage.local.set({ stocks: watchlist });
       resolve();
     });
