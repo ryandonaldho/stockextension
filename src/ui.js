@@ -23,18 +23,19 @@ class UI {
         this.cardElement.style.display = "none";
     }
 
-    displayCard(title, data) {
+    displayCard(data) {
         // Get Values
-        let symbolValue = data["Global Quote"]["01. symbol"];
-        let openValue = data["Global Quote"]["02. open"];
-        let highValue = data["Global Quote"]["03. high"];
-        let lowValue = data["Global Quote"]["04. low"];
-        let priceValue = data["Global Quote"]["05. price"];
-        let volumeValue = data["Global Quote"]["06. volume"];
-        let latestTradingDayValue = data["Global Quote"]["07. latest trading day"];
-        let previousCloseValue = data["Global Quote"]["08. previous close"];
-        let changeValue = data["Global Quote"]["09. change"];
-        let changePercentValue = data["Global Quote"]["10. change percent"];
+        let title = data.companyName;
+        let symbolValue = data.symbol;
+        let openValue = data.open;
+        let highValue = data.high;
+        let lowValue = data.low;
+        let priceValue = data.latestPrice;
+        let volumeValue = data.volume;
+        let latestTradingDayValue = data.latestTime;
+        let previousCloseValue = data.previousClose;
+        let changeValue = data.change;
+        let changePercentValue = data.changePercent;
 
         //console.log(data);
 
@@ -61,12 +62,12 @@ class UI {
             let output = '';
             stocks.forEach(stock => {
                 output += `
-                <tr data-id=${stock["01. symbol"]}> 
-                <td> ${stock["name"]}  </td>
+                <tr data-id=${stock.symbol}> 
+                <td> ${stock.companyName}  </td>
                 <td> 
-                ${stock["01. symbol"]} 
+                ${stock.symbol} 
                 </td>
-                <td> ${stock["05. price"]} 
+                <td> ${stock.latestPrice} 
                 </td>
                 <td>
                 <a class="btn-delete modal-trigger btn" href="#confirm-delete-modal"> <i class="material-icons">delete</i> </a>

@@ -2,7 +2,10 @@
   "name": "Stocks",
   "version": "1.0",
   "description": "Quotes for stocks",
-  "permissions": ["activeTab", "storage"],
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
   "browser_action": {
     "default_popup": "src/popup.html"
   },

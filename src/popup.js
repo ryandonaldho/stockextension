@@ -1,5 +1,5 @@
 import { ui } from "./ui.js";
-import { getSymbols, getStockQuote, debounce, formatData } from "./helpers.js";
+import { getSymbol, getStockQuote, getMutipleStocks, formatData } from "./helpers.js";
 
 let data = null;
 let elems = null;
@@ -16,14 +16,13 @@ document.addEventListener("DOMContentLoaded", function () {
   instances = M.Autocomplete.init(elems, {
     data,
     minLength: 1,
-    sortFunction: comparator
   });
   let confirmDeleteModal = document.querySelectorAll('.modal');
   let modalInstance = M.Modal.init(confirmDeleteModal, {
     dismissible: true
   });
 
-  let searchResultResponse = getSymbols();
+  let searchResultResponse = getSymbol();
   searchResultResponse
     .then(data => {
       let formattedData = formatData(data);
@@ -33,9 +32,6 @@ document.addEventListener("DOMContentLoaded", function () {
     .catch(err => console.log(err));
 
   initialize();
-
-  // document.querySelector("#autocomplete-input").addEventListener(
-  //   "keyup", debounce((e) => handleStockSearch(e), 500));
 
   document
     .querySelector(".autocomplete-content.dropdown-content")
@@ -50,17 +46,57 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Confirm Delete Stock Button Listener
   document.querySelector('#confirm-delete-button').addEventListener("click", handleDelete);
+
+  document.querySelector('#card-link').addEventListener("click", handleOpenNewTab);
 });
-
-
-// Sort function for sorting autocomplete results
-function comparator(a, b, inputString) {
-  return a.indexOf(inputString) - b.indexOf(inputString);
-}
 
 function initialize() {
   ui.hideStockInfoCard();
-  getDataAndDisplay();
+  getLatestUpdate().then(() => {
+    getDataAndDisplay();
+  })
+}
+
+function getLatestUpdate() {
+  return new Promise((resolve) => {
+    getAllStocksInWatchlist().then((symbols) => {
+      console.log(symbols);
+      let stocksString = formatSymbols(symbols);
+      console.log(stocksString);
+      getMutipleStocks(stocksString).then((data) => {
+        let watchlist = [];
+        for (const stock in data) {
+          watchlist.push(data[stock]["quote"]);
+        }
+        //console.log(watchlist);
+        console.log("setting local storage with new data");
+        chrome.storage.local.set({ stocks: watchlist });
+        resolve();
+      });
+    })
+  })
+}
+
+function getAllStocksInWatchlist() {
+  return new Promise(resolve => {
+    chrome.storage.local.get(['stocks'], function (result) {
+      let symbols = [];
+      if (result.stocks != undefined) {
+        console.log(result.stocks);
+        result.stocks.forEach((stock) => {
+          symbols.push(stock.symbol);
+        })
+      }
+      console.log(symbols);
+      resolve(symbols);
+    });
+  })
+
+}
+
+// return a string with the symbols seperated by commas
+function formatSymbols(symbols) {
+  return symbols.join();
 }
 
 function getStockToBeDeleted(e) {
@@ -73,9 +109,11 @@ function getStockToBeDeleted(e) {
 
 function handleDelete(e) {
   const stockSymbol = state.selectedStockToDelete;
+  console.log(stockSymbol);
   if (stockSymbol !== '') {
     // get sync storage and update 
-    deleteFromWatchList(stockSymbol).then(() => getDataAndDisplay())
+    deleteFromWatchList(stockSymbol).then(() => getDataAndDisplay());
+    state.selectedStockToDelete = '';
   }
   else {
     console.log("Error selectedStockToDelete is empty")
@@ -90,7 +128,7 @@ function deleteFromWatchList(stockSymbol) {
       let watchlist = result.stocks;
       console.log(watchlist);
       watchlist = watchlist.filter(function (stock) {
-        return stock["01. symbol"] !== stockSymbol;
+        return stock.symbol !== stockSymbol;
       });
       console.log(watchlist);
       chrome.storage.local.set({ stocks: watchlist });
@@ -102,7 +140,7 @@ function deleteFromWatchList(stockSymbol) {
 
 function handleStockSearch(e) {
   console.log(instances);
-  let searchResultResponse = getSymbols();
+  let searchResultResponse = getSymbol();
   searchResultResponse
     .then(data => {
       console.log(data);
@@ -117,24 +155,13 @@ function handleStockSelection(e) {
   let target = e.target;
   // Get Stock Symbol
   if (target) {
-    let regExp = /\(([^)]+)\)/;
-    let matches = regExp.exec(e.target.innerHTML);
-    console.log(matches);
     let symbol = e.target.parentElement.getAttribute("data-stock-symbol");
-    let title = matches[1];
-    let stockName = title.split(" (")[0];
-    console.log("symbol", symbol);
-    console.log("title", title);
-    //console.log("stockName", stockName);
     document.querySelector('#autocomplete-input').value = '';
     let quoteResultResponse = getStockQuote(symbol);
     quoteResultResponse.then(data => {
-      //console.log(data)
-      ui.displayCard(stockName, data);
-      let stockNameObject = { name: stockName };
-      let newObject = Object.assign({}, data["Global Quote"], stockNameObject);
-      //console.log(newObject);
-      updateSelectedStock(newObject);
+      console.log(data);
+      ui.displayCard(data);
+      updateSelectedStock(data);
     }).catch(err => console.log(err));
   }
 }
@@ -146,6 +173,11 @@ function handleAddStock(e) {
   addStockToPortfolio(stock).then(() => getDataAndDisplay());
   // get sync storage and update ui
   //getDataAndDisplay();
+}
+
+function handleOpenNewTab(e) {
+  //console.log(event.target.href);
+  chrome.tabs.create({ url: event.target.href, active: false });
 }
 
 function updateSearchResult(data) {
