@@ -9,3 +9,11 @@ body {
 .material-icons {
   color: black;
 }
+
+.success {
+  background: #4caf50;
+}
+
+.error {
+  background: #f44336;
+}

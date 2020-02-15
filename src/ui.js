@@ -70,7 +70,7 @@ class UI {
                 <td> ${stock.latestPrice} 
                 </td>
                 <td>
-                <a class="btn-delete modal-trigger btn" href="#confirm-delete-modal"> <i class="material-icons">delete</i> </a>
+                <a class="btn-delete modal-trigger" href="#confirm-delete-modal"> <i class="material-icons">delete</i> </a>
                 </td>
                 </tr>`
             });
@@ -80,6 +80,10 @@ class UI {
             this.table.style.display = "none";
             this.emptyMessage.style.display = "block";
         }
+    }
+
+    displayToastMessage(message, type) {
+        M.toast({ html: message, displayLength: 2000, classes: `${type}` })
     }
 }
 

@@ -4,8 +4,6 @@ import { getSymbol, getStockQuote, getMutipleStocks, formatData } from "./helper
 let data = null;
 let elems = null;
 let instances = null;
-let symbolsData = null;
-let regExp = /\(([^)]+)\)/;
 let state = {
   selectedStock: '',
   selectedStockToDelete: ''
@@ -47,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Confirm Delete Stock Button Listener
   document.querySelector('#confirm-delete-button').addEventListener("click", handleDelete);
 
+  // Opening link to yahoo finance for symbol
   document.querySelector('#card-link').addEventListener("click", handleOpenNewTab);
 });
 
@@ -114,6 +113,7 @@ function handleDelete(e) {
     // get sync storage and update 
     deleteFromWatchList(stockSymbol).then(() => getDataAndDisplay());
     state.selectedStockToDelete = '';
+    ui.displayToastMessage(`${stockSymbol} have been successfully deleted from the watchlist`, 'success');
   }
   else {
     console.log("Error selectedStockToDelete is empty")
@@ -137,20 +137,6 @@ function deleteFromWatchList(stockSymbol) {
   })
 }
 
-
-function handleStockSearch(e) {
-  console.log(instances);
-  let searchResultResponse = getSymbol();
-  searchResultResponse
-    .then(data => {
-      console.log(data);
-      let formattedData = formatData(data);
-      //console.log(formattedData);
-      updateSearchResult(formattedData);
-    })
-    .catch(err => console.log(err));
-}
-
 function handleStockSelection(e) {
   let target = e.target;
   // Get Stock Symbol
@@ -169,8 +155,18 @@ function handleStockSelection(e) {
 function handleAddStock(e) {
   //console.log('clicked', state["selectedStock"]);
   let stock = state["selectedStock"]
-  // Add stock to portfolio state
-  addStockToPortfolio(stock).then(() => getDataAndDisplay());
+  // Check if stock already exist
+  const found = checkStockAlreadyExist(stock);
+  found.then((result) => {
+    if (result) {
+      ui.displayToastMessage(`${stock.symbol} already exists in the watchlist`, 'error');
+    }
+    else {
+      // Add stock to portfolio state
+      addStockToPortfolio(stock).then(() => getDataAndDisplay());
+      ui.displayToastMessage(`${stock.symbol} have been successfully added to the watchlist`, 'success');
+    }
+  })
   // get sync storage and update ui
   //getDataAndDisplay();
 }
@@ -216,4 +212,22 @@ function getDataAndDisplay() {
     if (result.stocks != undefined)
       ui.displayPortfolio(result.stocks);
   });
+}
+
+function checkStockAlreadyExist(stock) {
+  let watchlist = [];
+  return new Promise(resolve => {
+    chrome.storage.local.get(['stocks'], function (result) {
+      if (result.stocks != null) {
+        watchlist = result.stocks;
+        const found = watchlist.find(({ symbol }) => symbol === stock.symbol)
+        if (found !== undefined) {
+          resolve(true)
+        }
+        else {
+          resolve(false);
+        }
+      }
+    });
+  })
 }
